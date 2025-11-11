@@ -102,7 +102,7 @@ function initVideoPlayers() {
         setTimeout(() => {
             animateCounter(projectCount, 12);
             animateCounter(courseCount, 8);
-            animateCounter(gpaCount, 4.0);
+            animateCounter(gpaCount, 3.92);
         }, 500);
     }
     
