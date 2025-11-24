@@ -637,8 +637,12 @@ p {
   box-shadow: 0 4px 12px #0000001a;
 }
 
+.name {
+  color: var(--color-blue);
+}
+
 .gradient-text {
-  background: linear-gradient(135deg, var(--color-blue), var(--color-pink));
+  background: linear-gradient(135deg, var(--color-blue), var(--color-mint));
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
