@@ -11,12 +11,6 @@ const designGalleryItems = [
         title: 'Christmas Marketing Promotion',    
     },
     {
-        type: 'video',
-        video: 'images/design/design-01.mp4',
-        title: 'Explanatory graphic and video production',
-        // description: 'Description of your design work'
-    },
-    {
         type: 'image',
         image: 'images/design/design-02.mp4',
         title: 'Event backdrop design',
