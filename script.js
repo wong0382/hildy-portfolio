@@ -231,8 +231,179 @@ function renderProjects() {
         });
     });
 
+    // Add these functions to your script.js file
+
+// Gallery and Lightbox functionality
+let currentImageIndex = 0;
+let galleryImages = [];
+
+function renderDesignGallery() {
+    const galleryGrid = document.querySelector('#design .gallery-grid');
+    if (!galleryGrid) return;
+    
+    const items = (typeof designGalleryItems !== 'undefined' ? designGalleryItems : (window.designGalleryItems || []));
+    galleryImages = items; // Store for lightbox navigation
+    
+    galleryGrid.innerHTML = '';
+    
+    items.forEach((item, index) => {
+        let thumbnailSrc = '';
+        let playIconHtml = '';
+        
+        // Determine thumbnail source and play icon
+        if (item.type === 'video') {
+            thumbnailSrc = item.thumbnail || item.video; // Use custom thumbnail or video itself
+            playIconHtml = '<div class="gallery-play-icon"></div>';
+        } else {
+            thumbnailSrc = item.image;
+        }
+        
+        const galleryItem = `
+            <div class="gallery-item" data-index="${index}">
+                ${item.type === 'video' 
+                    ? `<video src="${thumbnailSrc}" ${!item.thumbnail ? 'poster' : ''}></video>`
+                    : `<img src="${thumbnailSrc}" alt="${item.title || 'Design work'}">`
+                }
+                ${playIconHtml}
+                <div class="gallery-overlay">
+                    <h3>${item.title || ''}</h3>
+                    <p>${item.description || ''}</p>
+                </div>
+            </div>
+        `;
+        galleryGrid.insertAdjacentHTML('beforeend', galleryItem);
+    });
+    
+    // Add click event to gallery items
+    const galleryItemElements = document.querySelectorAll('.gallery-item');
+    galleryItemElements.forEach(item => {
+        item.addEventListener('click', function() {
+            const index = parseInt(this.getAttribute('data-index'));
+            openLightbox(index);
+        });
+    });
+}
+
+function openLightbox(index) {
+    currentImageIndex = index;
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImg = document.getElementById('lightbox-img');
+    const lightboxVideo = document.getElementById('lightbox-video');
+    
+    if (galleryImages[index]) {
+        const item = galleryImages[index];
+        
+        // Hide both media elements first
+        lightboxImg.style.display = 'none';
+        lightboxVideo.style.display = 'none';
+        
+        if (item.type === 'video') {
+            // Show video
+            lightboxVideo.src = item.video;
+            lightboxVideo.style.display = 'block';
+            lightboxVideo.play(); // Autoplay video
+        } else {
+            // Show image
+            lightboxImg.src = item.image;
+            lightboxImg.style.display = 'block';
+        }
+        
+        lightboxCaption.innerHTML = `
+            <h3>${item.title || ''}</h3>
+        `;
+        lightbox.style.display = 'flex';
+        document.body.style.overflow = 'hidden'; // Prevent scrolling
+    }
+}
+
+function closeLightbox() {
+    const lightbox = document.getElementById('lightbox');
+    const lightboxVideo = document.getElementById('lightbox-video');
+    
+    // Pause and reset video
+    if (lightboxVideo) {
+        lightboxVideo.pause();
+        lightboxVideo.currentTime = 0;
+    }
+    
+    lightbox.style.display = 'none';
+    document.body.style.overflow = ''; // Restore scrolling
+}
+
+function navigateLightbox(direction) {
+    // Pause current video if playing
+    const lightboxVideo = document.getElementById('lightbox-video');
+    if (lightboxVideo) {
+        lightboxVideo.pause();
+        lightboxVideo.currentTime = 0;
+    }
+    
+    currentImageIndex += direction;
+    
+    // Loop around
+    if (currentImageIndex >= galleryImages.length) {
+        currentImageIndex = 0;
+    } else if (currentImageIndex < 0) {
+        currentImageIndex = galleryImages.length - 1;
+    }
+    
+    openLightbox(currentImageIndex);
+}
+
+// Initialize lightbox controls
+function initLightbox() {
+    const lightboxClose = document.querySelector('.lightbox-close');
+    const lightboxPrev = document.getElementById('lightbox-prev');
+    const lightboxNext = document.getElementById('lightbox-next');
+    const lightbox = document.getElementById('lightbox');
+    
+    if (lightboxClose) {
+        lightboxClose.addEventListener('click', closeLightbox);
+    }
+    
+    if (lightboxPrev) {
+        lightboxPrev.addEventListener('click', (e) => {
+            e.stopPropagation();
+            navigateLightbox(-1);
+        });
+    }
+    
+    if (lightboxNext) {
+        lightboxNext.addEventListener('click', (e) => {
+            e.stopPropagation();
+            navigateLightbox(1);
+        });
+    }
+    
+    // Close on background click
+    if (lightbox) {
+        lightbox.addEventListener('click', function(e) {
+            if (e.target === lightbox) {
+                closeLightbox();
+            }
+        });
+    }
+    
+    // Keyboard navigation
+    document.addEventListener('keydown', function(e) {
+        const lightbox = document.getElementById('lightbox');
+        if (lightbox && lightbox.style.display === 'flex') {
+            if (e.key === 'Escape') {
+                closeLightbox();
+            } else if (e.key === 'ArrowLeft') {
+                navigateLightbox(-1);
+            } else if (e.key === 'ArrowRight') {
+                navigateLightbox(1);
+            }
+        }
+    });
+}
+
+
     // Render projects from data arrays (data files are loaded before this script in the HTML)
     try { renderProjects(); } catch (err) { console.warn('renderProjects error:', err); }
+    try { renderDesignGallery(); } catch (err) { console.warn('renderDesignGallery error:', err); }
+    initLightbox();
     
     // Intersection Observer for scroll animations
     const observerOptions = {
