@@ -21,10 +21,91 @@ function initVideoPlayers() {
     });
 }
 
+// Helper: render a single project item into a container
+function renderProjectItem(item, container) {
+    const reverseClass = item.reverse ? ' project-reverse' : '';
+    const color = (item.badge && item.badge.color) ? item.badge.color : 'blue';
+    const firstLink = (item.links && item.links.length) ? item.links[0].url : '#';
+    const titleText = item.title || '';
+    const imgAlt = item.title ? item.title : 'project image';
+
+    let mediaHtml = '';
+    if (item.type === 'video') {
+        const thumbSrc = item.videoThumbnail || `https://img.youtube.com/vi/${item.videoId}/maxresdefault.jpg`;
+        mediaHtml = `
+            <div class="project-image">
+                <a href="${firstLink}" target="_blank" rel="noopener noreferrer">
+                    <div class="video-wrapper">
+                        <div class="video-thumbnail" data-video-id="${item.videoId}">
+                            <img src="${thumbSrc}" alt="${imgAlt}">
+                            <div class="play-button"></div>
+                        </div>
+                    </div>
+                </a>
+                <iframe class="video-iframe"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen style="display:none"></iframe>
+            </div>
+        `;
+    } else {
+        const imgSrc = item.image || '';
+        mediaHtml = `
+            <div class="project-image">
+                <a href="${firstLink}" target="_blank" rel="noopener noreferrer">
+                    ${imgSrc ? `<img src="${imgSrc}" alt="${imgAlt}">` : `<div class="image-placeholder">${titleText}</div>`}
+                </a>
+            </div>
+        `;
+    }
+
+    const badgeClass = `badge-${color}`;
+    const highlightsHtml = (item.highlights || []).map(h => `<li>${h}</li>`).join('');
+    const tagsHtml = (item.tags || []).map(t => `<span class="tag">${t}</span>`).join('');
+    const ctaHtml = (item.links && item.links.length)
+        ? item.links.map(linkObj => {
+            const url = linkObj.url || '#';
+            const text = linkObj.text || 'Open';
+            const btnColor = linkObj.color || color;
+            const colorClass = `link-${btnColor}`;
+            return `<a class="link-display ${colorClass}" href="${url}" target="_blank" rel="noopener noreferrer"><button type="button" class="preview-button">${text}</button></a>`;
+        }).join('')
+        : '';
+
+    const projectHtml = `
+        <div class="project-item${reverseClass}" style="opacity: 1; transform: translateY(0px); transition: opacity 0.6s, transform 0.6s;">
+            ${mediaHtml}
+            <div class="project-details">
+                ${item.badge ? `<div class="project-badge ${badgeClass}">${item.badge.text}</div>` : ''}
+                <a href="${firstLink}" target="_blank" rel="noopener noreferrer" class="project-title-${color}"><h2>${titleText}</h2></a>
+                <p>${item.description || ''}</p>
+                ${ctaHtml ? `<div class="project-cta" style="margin:12px 0; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">${ctaHtml}</div>` : ''}
+                ${item.highlights && item.highlights.length ? `<div class="project-highlights"><h4>Project Highlights</h4><ul class="list-${color}">${highlightsHtml}</ul></div>` : ''}
+                ${item.tags && item.tags.length ? `<div class="project-tags">${tagsHtml}</div>` : ''}
+            </div>
+        </div>
+    `;
+    container.insertAdjacentHTML('beforeend', projectHtml);
+}
+
 // Render projects from data arrays into the corresponding .projects-list containers
 function renderProjects() {
+    // Render motion & data viz projects into design-motion page
+    const motionContainer = document.getElementById('design-motion-projects');
+    if (motionContainer) {
+        const motionItems = (typeof designMotionProjects !== 'undefined' ? designMotionProjects : []);
+        motionContainer.innerHTML = '';
+        motionItems.forEach(item => renderProjectItem(item, motionContainer));
+    }
+
+    // Render presentations into design-motion page
+    const presentationsContainer = document.getElementById('presentations-list');
+    if (presentationsContainer) {
+        const presItems = (typeof presentationProjects !== 'undefined' ? presentationProjects : []);
+        presentationsContainer.innerHTML = '';
+        presItems.forEach(item => renderProjectItem(item, presentationsContainer));
+    }
+
     const collections = {
-        'data-viz': (typeof dataVizProjects !== 'undefined' ? dataVizProjects : (window.dataVizProjects || [])),
         'web-dev': (typeof webDevProjects !== 'undefined' ? webDevProjects : (window.webDevProjects || [])),
         'ux-ui': (typeof uxUiProjects !== 'undefined' ? uxUiProjects : (window.uxUiProjects || []))
     };
@@ -36,79 +117,7 @@ function renderProjects() {
         container.innerHTML = '';
 
         items.forEach(item => {
-            const reverseClass = item.reverse ? ' project-reverse' : '';
-
-            // derive color from badge (fallback to blue)
-            const color = (item.badge && item.badge.color) ? item.badge.color : 'blue';
-
-            // Use the first link (if any) as the main project link for image/title
-            const firstLink = (item.links && item.links.length) ? item.links[0].url : '#';
-            const titleText = item.title || '';
-            const imgAlt = item.title ? item.title : 'project image';
-
-            // Build media HTML (image or video thumbnail + hidden iframe)
-            let mediaHtml = '';
-            if (item.type === 'video') {
-                const thumbSrc = item.videoThumbnail || `https://img.youtube.com/vi/${item.videoId}/maxresdefault.jpg`;
-                mediaHtml = `
-                    <div class="project-image">
-                        <a href="${firstLink}" target="_blank" rel="noopener noreferrer">
-                            <div class="video-wrapper">
-                                <div class="video-thumbnail" data-video-id="${item.videoId}">
-                                    <img src="${thumbSrc}" alt="${imgAlt}">
-                                    <div class="play-button"></div>
-                                </div>
-                            </div>
-                        </a>
-                        <iframe class="video-iframe"
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                allowfullscreen style="display:none"></iframe>
-                    </div>
-                `;
-            } else {
-                const imgSrc = item.image || '';
-                mediaHtml = `
-                    <div class="project-image">
-                        <a href="${firstLink}" target="_blank" rel="noopener noreferrer">
-                            ${imgSrc ? `<img src="${imgSrc}" alt="${imgAlt}">` : `<div class="image-placeholder">${titleText}</div>`}
-                        </a>
-                    </div>
-                `;
-            }
-
-            const badgeClass = `badge-${color}`;
-            const highlightsHtml = (item.highlights || []).map(h => `<li>${h}</li>`).join('');
-            const tagsHtml = (item.tags || []).map(t => `<span class="tag">${t}</span>`).join('');
-
-            // Build CTA buttons from the links array (if any) - buttons follow project color by default, but each link can override with its own color
-            const ctaHtml = (item.links && item.links.length)
-                ? item.links.map(linkObj => {
-                    const url = linkObj.url || '#';
-                    const text = linkObj.text || 'Open';
-                    const btnColor = linkObj.color || color; // fallback to project color
-                    const colorClass = `link-${btnColor}`;
-                    return `<a class="link-display ${colorClass}" href="${url}" target="_blank" rel="noopener noreferrer"><button type="button" class="preview-button">${text}</button></a>`;
-                }).join('')
-                : '';
-
-            const projectHtml = `
-                <div class="project-item${reverseClass}" style="opacity: 1; transform: translateY(0px); transition: opacity 0.6s, transform 0.6s;">
-                    ${mediaHtml}
-                    <div class="project-details">
-                        ${item.badge ? `<div class="project-badge ${badgeClass}">${item.badge.text}</div>` : ''}
-                        <a href="${firstLink}" target="_blank" rel="noopener noreferrer" class="project-title-${color}"><h2>${titleText}</h2></a>
-                        <p>${item.description || ''}</p>
-
-                        <!-- CTA buttons (one or multiple depending on item.links) -->
-                        ${ctaHtml ? `<div class="project-cta" style="margin:12px 0; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">${ctaHtml}</div>` : ''}
-
-                        ${item.highlights && item.highlights.length ? `<div class="project-highlights"><h4>Project Highlights</h4><ul class="list-${color}">${highlightsHtml}</ul></div>` : ''}
-                        ${item.tags && item.tags.length ? `<div class="project-tags">${tagsHtml}</div>` : ''}
-                    </div>
-                </div>
-            `;
-
-            container.insertAdjacentHTML('beforeend', projectHtml);
+            renderProjectItem(item, container);
         });
     });
 
@@ -150,8 +159,8 @@ function renderProjects() {
         // Close mobile menu if open
         navLinksContainer.classList.remove('active');
 
-        // Reinitialize videos when navigating to data-viz page
-   if (pageId === 'data-viz') {
+        // Reinitialize videos when navigating to design-motion page
+   if (pageId === 'design-motion') {
        setTimeout(() => {
            initVideoPlayers();
        }, 100);
@@ -238,7 +247,7 @@ let currentImageIndex = 0;
 let galleryImages = [];
 
 function renderDesignGallery() {
-    const galleryGrid = document.querySelector('#design .gallery-grid');
+    const galleryGrid = document.querySelector('#design-motion .gallery-grid');
     if (!galleryGrid) return;
     
     const items = (typeof designGalleryItems !== 'undefined' ? designGalleryItems : (window.designGalleryItems || []));
@@ -258,13 +267,16 @@ function renderDesignGallery() {
             thumbnailSrc = item.image;
         }
         
+        // Detect by extension so type:image with .mp4 src still renders as video
+        const isMp4 = thumbnailSrc.match(/\.(mp4|webm|ogg)(\?.*)?$/i);
+        playIconHtml = ''; // No play icon needed for autoplay videos
+        const mediaHtml = isMp4
+            ? `<div class="gallery-media"><video src="${thumbnailSrc}" autoplay muted loop playsinline></video></div>`
+            : `<div class="gallery-media"><img src="${thumbnailSrc}" alt="${item.title || 'Design work'}"></div>`;
+
         const galleryItem = `
             <div class="gallery-item" data-index="${index}">
-                ${item.type === 'video' 
-                    ? `<video src="${thumbnailSrc}" ${!item.thumbnail ? 'poster' : ''}></video>`
-                    : `<img src="${thumbnailSrc}" alt="${item.title || 'Design work'}">`
-                }
-                ${playIconHtml}
+                ${mediaHtml}
                 <div class="gallery-overlay">
                     <h3>${item.title || ''}</h3>
                     <p>${item.description || ''}</p>
@@ -297,14 +309,18 @@ function openLightbox(index) {
         lightboxImg.style.display = 'none';
         lightboxVideo.style.display = 'none';
         
-        if (item.type === 'video') {
-            // Show video
-            lightboxVideo.src = item.video;
+        // Detect by file extension — supports type:image with .mp4 src
+        const mediaSrc = item.image || item.video || '';
+        const isVideo = mediaSrc.match(/\.(mp4|webm|ogg)(\?.*)?$/i);
+
+        if (isVideo) {
+            // Show video with autoplay
+            lightboxVideo.src = mediaSrc;
             lightboxVideo.style.display = 'block';
-            lightboxVideo.play(); // Autoplay video
+            lightboxVideo.play();
         } else {
             // Show image
-            lightboxImg.src = item.image;
+            lightboxImg.src = mediaSrc;
             lightboxImg.style.display = 'block';
         }
         
@@ -494,7 +510,7 @@ document.addEventListener('click', function(e) {
     if (link) {
         const href = link.getAttribute('href');
         const pageId = href.substring(1);
-        const pages = ['home', 'about', 'data-viz', 'web-dev'];
+        const pages = ['home', 'about', 'design-motion', 'web-dev', 'ux-ui'];
         
         if (pages.includes(pageId)) {
             e.preventDefault();
