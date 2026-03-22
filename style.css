@@ -1619,19 +1619,29 @@ pointer-events: auto !important;
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.95);
+    background-color: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
     align-items: center;
     justify-content: center;
     flex-direction: column;
     padding: 2rem;
 }
 
+.lightbox-media-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+ 
 .lightbox-content {
     max-width: 90%;
     max-height: 80vh;
     object-fit: contain;
-    border-radius: 8px;
+    border-radius: 12px;
     animation: lightboxZoom 0.3s ease;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35), 0 0 0 2px rgba(255, 255, 255, 0.15);
 }
 
 #lightbox-video {

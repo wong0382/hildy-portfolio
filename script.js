@@ -301,6 +301,7 @@ function openLightbox(index) {
     const lightbox = document.getElementById('lightbox');
     const lightboxImg = document.getElementById('lightbox-img');
     const lightboxVideo = document.getElementById('lightbox-video');
+    const lightboxCaption = document.getElementById('lightbox-caption');
     
     if (galleryImages[index]) {
         const item = galleryImages[index];
@@ -314,10 +315,20 @@ function openLightbox(index) {
         const isVideo = mediaSrc.match(/\.(mp4|webm|ogg)(\?.*)?$/i);
 
         if (isVideo) {
-            // Show video with autoplay
-            lightboxVideo.src = mediaSrc;
+            // Keep video invisible until first frame is ready to avoid black overlay
+            lightboxVideo.style.opacity = '0';
             lightboxVideo.style.display = 'block';
-            lightboxVideo.play();
+            lightboxVideo.src = mediaSrc;
+            lightboxVideo.muted = true;
+            lightboxVideo.load();
+
+            const showVideo = () => {
+                lightboxVideo.style.transition = 'opacity 0.2s ease';
+                lightboxVideo.style.opacity = '1';
+                lightboxVideo.removeEventListener('canplay', showVideo);
+            };
+            lightboxVideo.addEventListener('canplay', showVideo);
+            lightboxVideo.play().catch(() => {});
         } else {
             // Show image
             lightboxImg.src = mediaSrc;
@@ -391,10 +402,11 @@ function initLightbox() {
         });
     }
     
-    // Close on background click
+    // Close on background click (anywhere that isn't the media itself)
     if (lightbox) {
         lightbox.addEventListener('click', function(e) {
-            if (e.target === lightbox) {
+            const isMedia = e.target.closest('#lightbox-img, #lightbox-video, .lightbox-nav, .lightbox-close');
+            if (!isMedia) {
                 closeLightbox();
             }
         });
