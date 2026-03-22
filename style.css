@@ -1536,17 +1536,21 @@ pointer-events: auto !important;
 
 /* Gallery Grid */
 .gallery-grid {
-    columns: 3;
+  display: grid;
+  grid-template-columns: auto auto auto;
+    /* columns: 3; */
     column-gap: 1.5rem;
     margin-top: 2rem;
 }
 
 @media (max-width: 900px) {
-    .gallery-grid { columns: 3; }
+  display: grid;
+  grid-template-columns: auto auto;
+    /* .gallery-grid { columns: 3; } */
 }
 
 @media (max-width: 600px) {
-    .gallery-grid { columns: 1; }
+    /* .gallery-grid { columns: 1; } */
 }
 
 /* Each card: no forced aspect-ratio, keeps natural ratio of media */

@@ -155,6 +155,11 @@ const designGalleryItems = [
         title: 'Christmas Marketing Promotion',
     },
     {
+        type: 'image',
+        image: 'images/design/design-12.jpg',
+        title: 'Typography Design Work',
+    },
+    {
         type: 'video',
         video: 'images/design/design-02.mp4',
         title: 'Event backdrop design',
